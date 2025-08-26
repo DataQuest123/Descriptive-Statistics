@@ -87,10 +87,3 @@ By covering **all pillars of descriptive statistics**, organizations can:
 At **Dataquest Solutions**, we specialize in turning numbers into narratives — helping companies unlock the power of their data.  
 
 ---
-
-## 🚀 Next Steps  
-- Add **visualizations** (boxplots, histograms, heatmaps)  
-- Extend analysis to **predictive modeling**  
-- Share findings in **interactive dashboards**  
-
----
