@@ -1,0 +1,247 @@
+---
+title: "DESCRIPTIVE STATISTICS"
+author: "Enock Bereka"
+date: "2025-08-19"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Load Libraries
+```{r warning=FALSE, message=FALSE}
+library(dplyr)       # data manipulation
+library(ggplot2)     # visualization
+library(psych)       # descriptive statistics
+library(moments)     # skewness, kurtosis
+library(tidyr)       # data wrangling
+library(corrplot)    # correlation plots
+library(tidyverse)
+library(flextable)
+library(ggcorrplot)
+```
+
+## Load Data
+```{r warning=FALSE, message=FALSE}
+data <- read.csv("C:/Users/ADMIN/Desktop/Data Science/Datasets/Business Intelligence/Sample - Superstore.csv")
+```
+
+## Inspect Data
+```{r warning=FALSE, message=FALSE}
+h = head(data, 10)        # first few rows
+flextable(h) %>% 
+  autofit() %>%
+  theme_box() %>%
+  color(part = "header", color = "white") %>%
+  bg(part = "header", bg = "steelblue") %>%
+  bold(part = "header")
+glimpse(data)         # structure of dataset
+data$Row.ID = NULL
+data$Postal.Code = NULL
+```
+
+## Interpretation:
+## - head() shows the first rows for a preview
+## - glimpse() shows data types (numeric, factor, character)
+
+## Summary Statistics
+```{r warning=FALSE, message=FALSE}
+num_data <- data %>% select_if(is.numeric)
+summary(num_data)
+```
+
+## Measures of Central Tendency
+## Sales
+```{r warning=FALSE, message=FALSE}
+mean(data$Sales, na.rm = TRUE)
+median(data$Sales, na.rm = TRUE)
+```
+
+## Mode function
+```{r warning=FALSE, message=FALSE}
+get_mode <- function(x) {
+  ux <- unique(x)
+  ux[which.max(tabulate(match(x, ux)))]
+}
+get_mode(data$Sales)
+```
+
+## Interpretation:
+## mean → average sales
+## median → middle sales (less affected by outliers)
+## mode → most frequent sales value
+
+## unique(x)
+## Extracts all the unique values in the vector x.
+## Example: if x = c(2, 3, 2, 5), then unique(x) = c(2, 3, 5).
+## match(x, ux)
+## Finds the position of each element of x in the list of unique values.
+## Example: for x = c(2, 3, 2, 5) and ux = c(2, 3, 5), we get match(x, ux) = c(1, 2, 1, 3).
+## tabulate(match(x, ux))
+## Counts how many times each unique value appears.
+## Example: tabulate(c(1, 2, 1, 3)) = c(2, 1, 1)
+## (meaning: value 2 appears 2 times, 3 appears 1 time, 5 appears 1 time).
+## which.max(...)
+## Finds the position of the most frequent value.
+## Example: which.max(c(2, 1, 1)) = 1 (the first element has the maximum count).
+## ux[...]
+## Returns the actual value from the unique values corresponding to the max count.
+## Example: ux[1] = 2, which is the mode.
+
+## Measures of Dispersion
+```{r warning=FALSE, message=FALSE}
+range(data$Sales, na.rm = TRUE)
+var(data$Sales, na.rm = TRUE)
+sd(data$Sales, na.rm = TRUE)
+IQR(data$Sales, na.rm = TRUE)
+```
+
+## Coefficient of Variation
+```{r warning=FALSE, message=FALSE}
+sd(data$Sales, na.rm = TRUE) / mean(data$Sales, na.rm = TRUE)
+```
+
+## Interpretation:
+## Range → spread between smallest & largest sales
+## Variance/SD → average deviation from mean
+## IQR → spread of middle 50% of data
+## CV → relative variability (SD as % of mean)
+
+## Distribution Shape
+```{r warning=FALSE, message=FALSE}
+skewness(data$Sales, na.rm = TRUE)
+kurtosis(data$Sales, na.rm = TRUE)
+```
+
+## Interpretation:
+## Skewness > 0 → right-skewed (long tail on right)
+## Skewness < 0 → left-skewed
+## Kurtosis > 3 → leptokurtic (peaked), < 3 → platykurtic (flat)
+
+## Frequency Distributions (Categorical Variables)
+```{r warning=FALSE, message=FALSE}
+table(data$Category)
+prop.table(table(data$Category)) * 100
+```
+
+## Interpretation:
+## Table → counts per category
+## Prop.table → percentage distribution
+
+## Cross-tabulations
+## Category vs Region
+```{r warning=FALSE, message=FALSE}
+table(data$Category, data$Region)
+prop.table(table(data$Category, data$Region), margin=2) * 100
+```
+
+## Interpretation:
+## Cross-tab shows how categories are distributed across regions
+## Proportions help in comparing relative distribution
+
+## Correlation & Association
+```{r warning=FALSE, message=FALSE}
+num_data <- data %>% select_if(is.numeric)
+cor_matrix <- cor(num_data, use="pairwise.complete.obs")
+```
+
+## Correlation heatmap
+```{r warning=FALSE, message=FALSE}
+ggcorrplot(cor_matrix,title = "Correlation Heatmap",lab_col = "black",
+           lab = TRUE, legend.title = "Pearson Correlation",
+           lab_size = 3, ggtheme = theme_classic(),
+           outline.color = "black",
+           colors = c("orange", "green", "blue"))
+```
+
+## Interpretation:
+## Correlation ranges from -1 (perfect negative) to +1 (perfect positive)
+## Helps identify relationships between Sales, Profit, Discount, etc.
+
+## Outlier Detection
+## Boxplot method
+```{r warning=FALSE, message=FALSE}
+boxplot(data$Sales, main="Outlier Detection - Sales")
+```
+
+## Z-score method
+```{r warning=FALSE, message=FALSE}
+z_scores <- scale(data$Sales)
+which(abs(z_scores) > 3)
+```
+
+## Interpretation:
+## Boxplot highlights outliers as points beyond whiskers
+## Z-scores > |3| indicate extreme outliers
+
+## Summary Table for Numerical Variables
+## Select numeric columns
+```{r warning=FALSE, message=FALSE}
+num_data <- data %>% select_if(is.numeric)
+```
+
+## Compute summary statistics
+```{r warning=FALSE, message=FALSE}
+num_summary <- num_data %>%
+  summarise_all(list(
+    Mean = ~mean(., na.rm=TRUE),
+    Median = ~median(., na.rm=TRUE),
+    SD = ~sd(., na.rm=TRUE),
+    Min = ~min(., na.rm=TRUE),
+    Max = ~max(., na.rm=TRUE),
+    Skewness = ~skewness(., na.rm=TRUE),
+    Kurtosis = ~kurtosis(., na.rm=TRUE)
+  )) %>%
+  pivot_longer(cols = everything(),
+               names_to = c("Variable", ".value"),
+               names_sep = "_")
+```
+
+## Convert to flextable
+```{r warning=FALSE, message=FALSE}
+flextable(num_summary) %>% 
+  autofit() %>%
+  theme_box() %>%
+  color(part = "header", color = "white") %>%
+  bg(part = "header", bg = "steelblue") %>%
+  bold(part = "header")
+```
+
+## Frequency Table for Categorical Variables
+## Category variable
+```{r warning=FALSE, message=FALSE}
+cat_summary <- data %>%
+  group_by(Category) %>%
+  summarise(Count = n(),
+            Percent = n()/nrow(data)*100)
+
+flextable(cat_summary) %>% 
+  autofit() %>%
+  theme_box() %>%
+  color(part = "header", color = "white") %>%
+  bg(part = "header", bg = "steelblue") %>%
+  bold(part = "header")
+```
+
+## Cross-tabulation with Flextable
+## Category vs Region
+```{r warning=FALSE, message=FALSE}
+cross_tab <- table(data$Category, data$Region) %>% as.data.frame()
+
+## Rename columns
+colnames(cross_tab) <- c("Category", "Region", "Count")
+
+## Add percentages
+cross_tab <- cross_tab %>%
+  group_by(Region) %>%
+  mutate(Percent = Count / sum(Count) * 100)
+
+flextable(cross_tab) %>% 
+  autofit() %>%
+  theme_box() %>%
+  color(part = "header", color = "white") %>%
+  bg(part = "header", bg = "steelblue") %>%
+  bold(part = "header")
+```
+
